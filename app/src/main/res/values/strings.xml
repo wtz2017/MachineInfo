@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">机器信息</string>
+
+    <string name="format_app_version">版本：%1$s(%2$d)</string>
+    <string name="format_app_pkg_name">程序包名：%1$s</string>
+    <string name="format_app_data_dir">数据目录：%1$s</string>
+    <string name="format_app_apk_dir">APK目录：%1$s</string>
+    <string name="format_app_storage">存储占用：%1$s(code:%2$s,data:%3$s,cache:%4$s)</string>
+    <string name="format_rss">RSS：%1$s</string>
+    <string name="format_top_page">栈顶页面：%1$s</string>
+    <string name="format_sample_time">采样时间：%1$s</string>
+    <string name="format_availabe_mem">可用内存：%1$s</string>
+</resources>

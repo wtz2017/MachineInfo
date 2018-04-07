@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="3dp">
+
+    <RelativeLayout
+        android:id="@+id/rl_title_area"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/iv_icon"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_centerVertical="true"
+            android:scaleType="fitXY" />
+
+        <TextView
+            android:id="@+id/tv_app_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="3dp"
+            android:layout_marginTop="3dp"
+            android:layout_toRightOf="@id/iv_icon"
+            android:text="名称"
+            android:textColor="#6A5ACD"
+            android:textSize="24dp" />
+
+        <TextView
+            android:id="@+id/tv_app_rss"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tv_app_name"
+            android:layout_marginLeft="3dp"
+            android:layout_toRightOf="@id/iv_icon"
+            android:text="RSS："
+            android:textSize="18dp" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/tv_top_page"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rl_title_area"
+        android:layout_marginTop="3dp"
+        android:text="栈顶页面："
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/tv_sample_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_top_page"
+        android:layout_marginTop="3dp"
+        android:text="采样时间："
+        android:textSize="15dp" />
+
+    <TextView
+        android:id="@+id/tv_available_mem"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_sample_time"
+        android:layout_marginTop="3dp"
+        android:text="可用内存："
+        android:textSize="15dp" />
+
+</RelativeLayout>
