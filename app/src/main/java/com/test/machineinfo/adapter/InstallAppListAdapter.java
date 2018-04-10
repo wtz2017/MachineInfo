@@ -122,7 +122,11 @@ public class InstallAppListAdapter extends RecyclerView.Adapter<InstallAppListAd
                 @Override
                 public void onGetStatsCompleted(PackageStats pStats, boolean succeeded) throws RemoteException {
                     // 回调是在子线程中，需要到主线程更新ui
-                    Log.d(TAG, "onGetStatsCompleted succeeded: " + succeeded);
+                    Log.d(TAG, "onGetStatsCompleted succeeded: " + succeeded + ", context = " + context);
+                    if (context == null) {
+                        // 异步加载回来要判断界面是否还在
+                        return;
+                    }
                     updateStorageOnUiThread(holder, pStats);
                 }
             });
