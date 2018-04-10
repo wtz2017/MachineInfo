@@ -11,6 +11,8 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -32,6 +34,7 @@ import com.test.machineinfo.adapter.InstallAppListAdapter;
 import com.test.machineinfo.utils.ShellUtils;
 import com.test.machineinfo.view.DividerItemDecoration;
 import com.test.machineinfo.view.RcvLinearLayoutManager;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +53,11 @@ public class FragmentAppInfo extends Fragment implements InstallAppListAdapter.O
     private List<ApplicationInfo> mApplicationInfos = new ArrayList<ApplicationInfo>();
 
     private View mFocusView;
+    private AVLoadingIndicatorView mLoading;
+
+    private boolean isUpdatingData;
+
+    private Handler mHandler;
 
     public FragmentAppInfo() {
         // Required empty public constructor
@@ -58,7 +66,7 @@ public class FragmentAppInfo extends Fragment implements InstallAppListAdapter.O
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        updateAppListData("");
+        mHandler = new Handler(Looper.getMainLooper());
     }
 
     @Override
@@ -66,6 +74,8 @@ public class FragmentAppInfo extends Fragment implements InstallAppListAdapter.O
                              Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView...");
         View root = inflater.inflate(R.layout.fragment_app_info, container, false);
+
+        mLoading = (AVLoadingIndicatorView) root.findViewById(R.id.loading);
 
         mInstallAppRecyclerView = (RecyclerView) root.findViewById(R.id.rcv_install_app_list);
         mInstallAppRecyclerView.setLayoutManager(new RcvLinearLayoutManager(getContext()));
@@ -88,29 +98,49 @@ public class FragmentAppInfo extends Fragment implements InstallAppListAdapter.O
                 }
 
                 updateAppListData(keyword);
-                mInstallAppListAdapter.updateAll(mApplicationInfos);
             }
         });
 
         registerReceiver();
+
+        updateAppListData("");
         return root;
     }
 
-    private void updateAppListData(String keyword) {
+    private void updateAppListData(final String keyword) {
+        if (isUpdatingData) {
+            return;
+        }
+        isUpdatingData = true;
+
+        mLoading.show();
         mApplicationInfos.clear();
 
-        PackageManager pm = getActivity().getPackageManager();
-        List<ApplicationInfo> listAppcations = pm
-                .getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES);
-        for (ApplicationInfo info : listAppcations) {
-            String name = (String) info.loadLabel(pm);
-            if (info.packageName.contains(keyword)
-                    || (!TextUtils.isEmpty(name) && name.contains(keyword))) {
-                mApplicationInfos.add(info);
-            }
-        }
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                PackageManager pm = getActivity().getPackageManager();
+                List<ApplicationInfo> listAppcations = pm
+                        .getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES);
+                for (ApplicationInfo info : listAppcations) {
+                    String name = (String) info.loadLabel(pm);
+                    if (info.packageName.contains(keyword)
+                            || (!TextUtils.isEmpty(name) && name.contains(keyword))) {
+                        mApplicationInfos.add(info);
+                    }
+                }
+                Log.d(TAG, "mApplicationInfos.size=" + mApplicationInfos.size());
 
-        Log.d(TAG, "mApplicationInfos.size=" + mApplicationInfos.size());
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mInstallAppListAdapter.updateAll(mApplicationInfos);
+                        mLoading.hide();
+                        isUpdatingData = false;
+                    }
+                });
+            }
+        }).start();
     }
 
     @Override
@@ -140,6 +170,14 @@ public class FragmentAppInfo extends Fragment implements InstallAppListAdapter.O
         mApplicationInfos.clear();
         mApplicationInfos = null;
         super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy");
+        mHandler.removeCallbacksAndMessages(null);
+        mHandler = null;
+        super.onDestroy();
     }
 
     private void registerReceiver() {
