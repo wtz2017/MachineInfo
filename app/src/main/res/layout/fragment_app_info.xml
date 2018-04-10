@@ -30,7 +30,11 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rcv_install_app_list"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_width="match_parent"/>
+        android:descendantFocusability="afterDescendants"
+        android:nextFocusDown="@id/rcv_install_app_list"
+        android:scrollbarSize="10dp"
+        android:scrollbars="vertical" />
 
 </LinearLayout>

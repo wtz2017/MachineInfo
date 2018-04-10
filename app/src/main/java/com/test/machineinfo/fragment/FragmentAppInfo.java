@@ -31,6 +31,7 @@ import com.test.machineinfo.R;
 import com.test.machineinfo.adapter.InstallAppListAdapter;
 import com.test.machineinfo.utils.ShellUtils;
 import com.test.machineinfo.view.DividerItemDecoration;
+import com.test.machineinfo.view.RcvLinearLayoutManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +43,13 @@ import java.util.List;
 public class FragmentAppInfo extends Fragment implements InstallAppListAdapter.OnItemClickListener {
     private static final String TAG = FragmentAppInfo.class.getSimpleName();
 
+    private EditText etPkgWord;
+
     private RecyclerView mInstallAppRecyclerView;
     private InstallAppListAdapter mInstallAppListAdapter;
     private List<ApplicationInfo> mApplicationInfos = new ArrayList<ApplicationInfo>();
+
+    private View mFocusView;
 
     public FragmentAppInfo() {
         // Required empty public constructor
@@ -63,14 +68,14 @@ public class FragmentAppInfo extends Fragment implements InstallAppListAdapter.O
         View root = inflater.inflate(R.layout.fragment_app_info, container, false);
 
         mInstallAppRecyclerView = (RecyclerView) root.findViewById(R.id.rcv_install_app_list);
-        mInstallAppRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mInstallAppRecyclerView.setLayoutManager(new RcvLinearLayoutManager(getContext()));
         mInstallAppListAdapter = new InstallAppListAdapter(getContext(), mApplicationInfos);
         mInstallAppListAdapter.setOnItemClickListener(this);
         mInstallAppRecyclerView.setAdapter(mInstallAppListAdapter);
         mInstallAppRecyclerView.addItemDecoration(new DividerItemDecoration(getContext(),
                 DividerItemDecoration.VERTICAL_LIST));
 
-        final EditText etPkgWord = (EditText) root.findViewById(R.id.et_pkg_keyword);
+        etPkgWord = (EditText) root.findViewById(R.id.et_pkg_keyword);
         Button btnUpdate = (Button) root.findViewById(R.id.btn_update);
         btnUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,13 +116,18 @@ public class FragmentAppInfo extends Fragment implements InstallAppListAdapter.O
     @Override
     public void onResume() {
         Log.d(TAG, "onResume");
-        mInstallAppRecyclerView.requestFocus();
+        if (mFocusView != null) {
+            mFocusView.requestFocus();
+        } else {
+            etPkgWord.requestFocus();
+        }
         super.onResume();
     }
 
     @Override
     public void onPause() {
         Log.d(TAG, "onPause");
+        mFocusView = getActivity().getCurrentFocus();
         super.onPause();
     }
 
@@ -125,6 +135,10 @@ public class FragmentAppInfo extends Fragment implements InstallAppListAdapter.O
     public void onDestroyView() {
         Log.d(TAG, "onDestroyView");
         getContext().unregisterReceiver(mReceiver);
+        mInstallAppListAdapter.destroy();
+        mInstallAppListAdapter = null;
+        mApplicationInfos.clear();
+        mApplicationInfos = null;
         super.onDestroyView();
     }
 
@@ -163,24 +177,6 @@ public class FragmentAppInfo extends Fragment implements InstallAppListAdapter.O
             }
         }
     };
-
-    private void readRunProcessInfo(StringBuffer buffer, String keyword) {
-        String cmd = "ps | grep PID";
-        ShellUtils.CommandResult ret = ShellUtils.execCommand(cmd, false);
-        buffer.append("" + ret.successMsg);
-
-        cmd = "ps | grep " + keyword;
-        ret = ShellUtils.execCommand(cmd, false);
-        buffer.append("" + ret.successMsg);
-
-        buffer.append("\r\n");
-
-        buffer.append("本程序运行状态:\r\n");
-
-        String cmd2 = "ps | grep " + getActivity().getPackageName();
-        ShellUtils.CommandResult ret2 = ShellUtils.execCommand(cmd2, false);
-        buffer.append("" + ret2.successMsg);
-    }
 
     @Override
     public void onItemClick(View view, int position) {

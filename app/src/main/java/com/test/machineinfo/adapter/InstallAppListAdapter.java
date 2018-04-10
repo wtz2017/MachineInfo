@@ -42,6 +42,14 @@ public class InstallAppListAdapter extends RecyclerView.Adapter<InstallAppListAd
         pm = context.getPackageManager();
     }
 
+    public void destroy() {
+        context = null;
+        applicationInfos.clear();
+        applicationInfos = null;
+        onItemClickListener = null;
+        pm = null;
+    }
+
     public void updateAll(List<ApplicationInfo> applicationInfos) {
         this.applicationInfos.clear();
         this.applicationInfos.addAll(applicationInfos);

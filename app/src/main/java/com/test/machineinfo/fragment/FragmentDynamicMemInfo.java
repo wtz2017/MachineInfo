@@ -6,12 +6,15 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +25,7 @@ import com.test.machineinfo.adapter.DynamicMemListAdapter;
 import com.test.machineinfo.data.DynamicMemory;
 import com.test.machineinfo.utils.Utils;
 import com.test.machineinfo.view.DividerItemDecoration;
+import com.test.machineinfo.view.RcvLinearLayoutManager;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,6 +60,8 @@ public class FragmentDynamicMemInfo extends Fragment implements DynamicMemListAd
     private MyService mService;
     private boolean mBound = false;
 
+    private Handler mHandler;
+
     public FragmentDynamicMemInfo() {
         // Required empty public constructor
     }
@@ -63,6 +69,7 @@ public class FragmentDynamicMemInfo extends Fragment implements DynamicMemListAd
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mHandler = new Handler(Looper.getMainLooper());
         Intent intent = new Intent(getActivity(), MyService.class);
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
@@ -95,7 +102,7 @@ public class FragmentDynamicMemInfo extends Fragment implements DynamicMemListAd
         initLineChart();
 
         mDynamicMemRecyclerView = (RecyclerView) root.findViewById(R.id.rcv_dynamic_mem);
-        mDynamicMemRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        mDynamicMemRecyclerView.setLayoutManager(new RcvLinearLayoutManager(getContext()));
         mDynamicMemListAdapter = new DynamicMemListAdapter(getContext(), mDynamicMemoryList);
         mDynamicMemListAdapter.setOnItemClickListener(this);
         mDynamicMemRecyclerView.setAdapter(mDynamicMemListAdapter);
@@ -141,7 +148,6 @@ public class FragmentDynamicMemInfo extends Fragment implements DynamicMemListAd
         mLineChartData.setAxisYLeft(axisY);  //Y轴设置在左边
         //data.setAxisYRight(axisY);  //y轴设置在右边
 
-
         //设置行为属性，支持缩放、滑动以及平移
         mLineChartView.setInteractive(true);
         mLineChartView.setZoomType(ZoomType.HORIZONTAL);
@@ -182,8 +188,14 @@ public class FragmentDynamicMemInfo extends Fragment implements DynamicMemListAd
     @Override
     public void onResume() {
         Log.d(TAG, "onResume");
-        mDynamicMemRecyclerView.requestFocus();
         updateMemoryListData();
+        // 在TV/BOX上延迟获取焦点
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mDynamicMemRecyclerView.requestFocus();
+            }
+        }, 300);
         super.onResume();
     }
 
@@ -213,6 +225,8 @@ public class FragmentDynamicMemInfo extends Fragment implements DynamicMemListAd
             mService = null;
             mBound = false;
         }
+        mHandler.removeCallbacksAndMessages(null);
+        mHandler = null;
         super.onDestroy();
     }
 
