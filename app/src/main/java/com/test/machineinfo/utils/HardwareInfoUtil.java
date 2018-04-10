@@ -252,6 +252,17 @@ public class HardwareInfoUtil {
         }
     }
 
+    public static int availableMemory(Context context, ActivityManager.MemoryInfo resuedMemoryInfo) {
+        try {
+            ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            activityManager.getMemoryInfo(resuedMemoryInfo);
+//            return Formatter.formatFileSize(context, memoryInfo.availMem);
+            return (int) (resuedMemoryInfo.availMem / 1024L / 1024L);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
     public static int totalMemory(Context context) {
         if (Build.VERSION.SDK_INT >= 16) {
             try {

@@ -196,6 +196,12 @@ public class FragmentDynamicMemInfo extends Fragment implements DynamicMemListAd
     @Override
     public void onDestroyView() {
         Log.d(TAG, "onDestroyView");
+        mDynamicMemListAdapter.destroy();
+        mDynamicMemListAdapter = null;
+        if (mDynamicMemoryList != null) {
+            mDynamicMemoryList.clear();
+            mDynamicMemoryList = null;
+        }
         super.onDestroyView();
     }
 

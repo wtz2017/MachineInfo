@@ -12,13 +12,13 @@ public class DynamicMemory {
     int systemAvailableMemory;
     ApplicationInfo topApp;
     String topActivity;
-    String topAppRssMemory;
+    String topAppPssMemory;
 
     public DynamicMemory copyData(DynamicMemory dm) {
         timeStamp = dm.timeStamp;
         systemAvailableMemory = dm.systemAvailableMemory;
         topApp = dm.topApp;
-        topAppRssMemory = dm.topAppRssMemory;
+        topAppPssMemory = dm.topAppPssMemory;
         topActivity = dm.topActivity;
         return this;
     }
@@ -51,12 +51,12 @@ public class DynamicMemory {
         this.topApp = topApp;
     }
 
-    public String getTopAppRssMemory() {
-        return topAppRssMemory;
+    public String getTopAppPssMemory() {
+        return topAppPssMemory;
     }
 
-    public void setTopAppRssMemory(String topAppRssMemory) {
-        this.topAppRssMemory = topAppRssMemory;
+    public void setTopAppPssMemory(String topAppRssMemory) {
+        this.topAppPssMemory = topAppRssMemory;
     }
 
     public String getTopActivity() {

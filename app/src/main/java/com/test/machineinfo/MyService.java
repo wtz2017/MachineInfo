@@ -27,10 +27,13 @@ public class MyService extends Service {
     private int mLatestMemoryIndex;
     private ArrayList<DynamicMemory> mDynamicMemoryList = new ArrayList<DynamicMemory>();
     private ArrayList<DynamicMemory> mDynamicMemoryListCopy = new ArrayList<DynamicMemory>();
-    DynamicMemory mDynamicMemoryTemp = new DynamicMemory();
+    private DynamicMemory mDynamicMemoryTemp = new DynamicMemory();
+    private ActivityManager.MemoryInfo mMemoryInfoTemp = new ActivityManager.MemoryInfo();
 
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private PackageManager pm;
+    private final static int GC_INTERVAL_COUNT = 10;
+    private int mGcCount;
 
     public class LocalBinder extends Binder {
         public MyService getService() {
@@ -56,6 +59,11 @@ public class MyService extends Service {
             @Override
             public void run() {
                 readMemory();
+                if (++mGcCount >= GC_INTERVAL_COUNT) {
+                    mGcCount = 0;
+                    System.gc();
+                }
+
                 mHandler.removeCallbacks(this);
                 mHandler.postDelayed(this, STAT_TIME_INTERVAL);
             }
@@ -64,10 +72,15 @@ public class MyService extends Service {
 
     private void readMemory() {
         mDynamicMemoryTemp.setTimeStamp(System.currentTimeMillis());
-        mDynamicMemoryTemp.setSystemAvailableMemory(HardwareInfoUtil.availableMemory(this));
+        mDynamicMemoryTemp.setSystemAvailableMemory(HardwareInfoUtil.availableMemory(this, mMemoryInfoTemp));
         ActivityManager.RunningTaskInfo rti = Utils.getTopRunningAppInfo(this);
-        mDynamicMemoryTemp.setTopActivity(rti.topActivity.getClassName());
-        String pkgName = rti.topActivity.getPackageName();
+        String pkgName = null;
+        if (rti != null) {
+            mDynamicMemoryTemp.setTopActivity(rti.topActivity.getClassName());
+            pkgName = rti.topActivity.getPackageName();
+        } else {
+            mDynamicMemoryTemp.setTopActivity(null);
+        }
         try {
             mDynamicMemoryTemp.setTopApp(pm.getApplicationInfo(pkgName, 0));
         } catch (PackageManager.NameNotFoundException e) {
@@ -75,10 +88,10 @@ public class MyService extends Service {
             mDynamicMemoryTemp.setTopApp(null);
         }
         try {
-            mDynamicMemoryTemp.setTopAppRssMemory(Utils.getAppRssMemory(this, pkgName));
+            mDynamicMemoryTemp.setTopAppPssMemory(Utils.getAppPssMemory(this, pkgName));
         } catch (Exception e) {
             e.printStackTrace();
-            mDynamicMemoryTemp.setTopAppRssMemory("");
+            mDynamicMemoryTemp.setTopAppPssMemory("");
         }
 
         updateLatestMemory(mDynamicMemoryTemp);

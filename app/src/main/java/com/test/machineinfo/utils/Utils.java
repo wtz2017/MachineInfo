@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.pm.IPackageStatsObserver;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Debug;
 import android.text.format.Formatter;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -151,20 +152,59 @@ public class Utils {
     }
 
     public static ActivityManager.RunningTaskInfo getTopRunningAppInfo(Context context) {
-        ActivityManager manager = (ActivityManager) context
-                .getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager.RunningTaskInfo rti = null;
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningTaskInfo> runningTaskInfos = manager.getRunningTasks(1);
         if (runningTaskInfos != null && runningTaskInfos.size() > 0) {
-            return runningTaskInfos.get(0);
+            rti = runningTaskInfos.get(0);
+            runningTaskInfos.clear();
         }
-        return null;
+        return rti;
     }
 
+    public static String getAppPssMemory(Context context, String packageName) {
+        String ret = "-1";
+        ActivityManager am = (ActivityManager) context
+                .getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> mRunningProcess = am.getRunningAppProcesses();
+        int pid=-1;
+        for (ActivityManager.RunningAppProcessInfo amProcess : mRunningProcess){
+            if(amProcess.processName.equals(packageName)){
+                pid=amProcess.pid;
+                break;
+            }
+        }
+        mRunningProcess.clear();
+        if (pid == -1) {
+            return ret;
+        }
+
+        int[] memPids = new int[] { pid };
+        Debug.MemoryInfo[] memoryInfos = am.getProcessMemoryInfo(memPids);
+        if (memoryInfos == null || memoryInfos.length < 1 || memoryInfos[0] == null) {
+            return ret;
+        }
+
+        Debug.MemoryInfo memoryInfo = memoryInfos[0];
+        ret = Formatter.formatFileSize(context, memoryInfo.getTotalPss() * 1024);
+        memoryInfos[0] = null;
+        return ret;
+    }
+
+    /**
+     * 不可频繁使用，因为要操作process.getInputStream()占用大量内存
+     * @param context
+     * @param packageName
+     * @return
+     * @throws Exception
+     */
+    @Deprecated
     public static String getAppRssMemory(Context context, String packageName) throws Exception {
         String cmd = "ps | grep " + packageName;
         ShellUtils.CommandResult ret = ShellUtils.execCommand(cmd, false);
         ArrayList<String> list = splitStringBySpace(ret.successMsg);
         String rss = list.get(4);
+        list.clear();
         long rssl = Long.parseLong(rss);//KB
         rssl = rssl * 1024;//Byte
         return Formatter.formatFileSize(context, rssl);

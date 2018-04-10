@@ -2,13 +2,7 @@ package com.test.machineinfo.adapter;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
-import android.content.pm.IPackageStatsObserver;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.PackageStats;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.RemoteException;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,7 +15,6 @@ import com.test.machineinfo.R;
 import com.test.machineinfo.data.DynamicMemory;
 import com.test.machineinfo.utils.Utils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -42,6 +35,14 @@ public class DynamicMemListAdapter extends RecyclerView.Adapter<DynamicMemListAd
             this.dynamicMemoryList.addAll(dynamicMemoryList);
         }
         pm = context.getPackageManager();
+    }
+
+    public void destroy() {
+        context = null;
+        dynamicMemoryList.clear();
+        dynamicMemoryList = null;
+        onItemClickListener = null;
+        pm = null;
     }
 
     public void updateAll(List<DynamicMemory> dynamicMemoryList) {
@@ -97,7 +98,7 @@ public class DynamicMemListAdapter extends RecyclerView.Adapter<DynamicMemListAd
         holder.tvAppName.setText(appInfo.loadLabel(pm));
 
         String format = context.getString(R.string.format_rss);
-        holder.tvRss.setText(String.format(format, dm.getTopAppRssMemory()));
+        holder.tvRss.setText(String.format(format, dm.getTopAppPssMemory()));
 
         format = context.getString(R.string.format_top_page);
         holder.tvTopPage.setText(String.format(format, dm.getTopActivity()));
